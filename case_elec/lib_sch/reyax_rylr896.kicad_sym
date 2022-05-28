@@ -1,9 +1,9 @@
 (kicad_symbol_lib (version 20211014) (generator kicad_symbol_editor)
-  (symbol "reyax_rylr896" (in_bom yes) (on_board yes)
+  (symbol "REYAX RYLR896" (in_bom yes) (on_board yes)
     (property "Reference" "U" (id 0) (at 0 12.7 0)
       (effects (font (size 1.27 1.27)))
     )
-    (property "Value" "reyax_rylr896" (id 1) (at 0 10.16 0)
+    (property "Value" "REYAX RYLR896" (id 1) (at 0 10.16 0)
       (effects (font (size 1.27 1.27)))
     )
     (property "Footprint" "" (id 2) (at 0 12.7 0)
@@ -12,7 +12,7 @@
     (property "Datasheet" "" (id 3) (at 0 12.7 0)
       (effects (font (size 1.27 1.27)) hide)
     )
-    (symbol "reyax_rylr896_0_0"
+    (symbol "REYAX RYLR896_0_0"
       (rectangle (start 20.32 3.81) (end 20.32 3.81)
         (stroke (width 0) (type default) (color 0 0 0 0))
         (fill (type none))
@@ -34,7 +34,7 @@
         (fill (type none))
       )
     )
-    (symbol "reyax_rylr896_0_1"
+    (symbol "REYAX RYLR896_0_1"
       (rectangle (start -15.24 7.62) (end 15.24 -7.62)
         (stroke (width 0) (type default) (color 0 0 0 0))
         (fill (type none))
@@ -83,7 +83,7 @@
         (fill (type none))
       )
     )
-    (symbol "reyax_rylr896_1_1"
+    (symbol "REYAX RYLR896_1_1"
       (pin input line (at -17.78 6.35 0) (length 2.54)
         (name "VDD" (effects (font (size 1.27 1.27))))
         (number "1" (effects (font (size 1.27 1.27))))
