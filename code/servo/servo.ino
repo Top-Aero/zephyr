@@ -22,6 +22,8 @@ void mouvement_angulaire(int cible){
   Serial.print(ini); Serial.print(" -> "); Serial.print(cible);
 
   for (int angle(ini); angle != cible; angle += inc){
+    if (abs(cible - angle) < 3)
+      break;
     srv.write(angle);
     delay(10);
   }
@@ -30,7 +32,11 @@ void mouvement_angulaire(int cible){
 void setup() {
   pinMode(p_led, OUTPUT);
   pinMode(p_potard, INPUT);
+
+  srv.write(
   srv.attach(p_srv);
+
+  digitalWrite(p_led, HIGH);
 }
 
 void loop() {
