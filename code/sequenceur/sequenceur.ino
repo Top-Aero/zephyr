@@ -1,10 +1,13 @@
 /*******************************************************************************
  * @file sequenceur.ino
  * 
- * @brief TOP AERO - zephyr.seq : sequenceur liberant le parachute.
+ * @brief TOP AERO - zephyr.seq : sequenceur enclanchant le systeme de
+ *  separation et la liberation du parachute.
  * 
  * @author Mohamed-Iadh BANI <mohamed-iadh.bani@top-aero.com>
 *******************************************************************************/
+
+#define DEBUG 0
 
 // Pins teensy 3.2 : 9, 14.
 uint8_t const PIN_SERVO(9);
@@ -71,11 +74,13 @@ void setup() {
 }
 
 void loop() {
-  Serial.print("etat\t\t"); Serial.println(etat);
-  Serial.print("etat_servo\t"); Serial.println(etat_servo);
-  Serial.print("delai_parachute\t"); Serial.println(tps_courant - instant_decollage);
-  Serial.print("jack mise\t\t"); Serial.println(jack);
-  delay(10);
+  #ifdef DEBUG
+    Serial.print("etat\t\t"); Serial.println(etat);
+    Serial.print("etat_servo\t"); Serial.println(etat_servo);
+    Serial.print("delai_parachute\t"); Serial.println(tps_courant - instant_decollage);
+    Serial.print("jack mise\t\t"); Serial.println(jack);
+    delay(10);
+  #endif
 
   /* bloc jack anti-rebond */
   jack_courant = digitalRead(PIN_JACK);
