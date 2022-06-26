@@ -81,11 +81,11 @@ void setup() {
   ///////////////////////////////////////////////////////////////////////////////////////////////////////
                                               /* Accélération */
   /* Initialise the sensor */
- /*  if(!bno.begin())
+  if(!bno.begin())
   {
     Serial.print("Couldnt find accelerator sensor");
-    while(1);
-  }*/
+    //while(1);
+  }
 
   bno.setExtCrystalUse(true);
   ///////////////////////////////////////////////////////////////////////////////////////////////////////
