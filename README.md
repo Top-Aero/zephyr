@@ -7,7 +7,7 @@
 
 Le vent d'Ouest, fils d'Astreos et d'Éos, attise le feu de notre inspiration : Zéphyr. Projet phare de l'association [Top Aéro](https://www.top-aero.com/), il s'agit d'une fusée expérimentale transsonique équipée de capteurs au niveau de l'ogive. Ces capteurs permettront d'observer le régime de l'écoulement de l'air autour de l'ogive afin, afin de les comparer à une simulation faite préalablement.
 
-Ce dépôt contient les conceptions des PCB du système électronique et les code de microcontrôleurs contenus dans la case éléctronique de la fusée.
+Ce dépôt contient les conceptions des PCB du système électronique et les codes des microcontrôleurs contenus dans la case éléctronique de la fusée.
 
 ## Membres actifs
 
