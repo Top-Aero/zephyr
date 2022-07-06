@@ -7,8 +7,10 @@
 #define O_EJC (21)  // signal ejection
 #define O_SRV (9)   // commande servomoteur
 
-uint16_t const c_ouvert(2022);     // step ouverture systeme separation (us)
-uint16_t const c_ferme(1730);      // step fermeture systeme separation (us)
+#define DEBUG
+
+uint16_t const c_ouvert(1916);     // step ouverture systeme separation (us)
+uint16_t const c_ferme(2200);      // step fermeture systeme separation (us)
 uint16_t const c_dureeVol(19500);  // duree phase vol avant ejection (ms)
 uint16_t const c_delaiAntiRebond(50);  // delai anti-rebond prise jack (ms)
 uint32_t const c_delaiServo(5000);     // delai de positionnement servo (ms)
@@ -17,6 +19,11 @@ Servo grosServo;
 void setup() {
   Serial.begin(9600);
 
+  #ifdef DEBUG
+    delay(5000);
+    Serial.println("\netat\tservo\tjack\tduree vol");
+  #endif
+
   pinMode(I_JCK, INPUT_PULLDOWN);
   pinMode(O_ARM, OUTPUT);
   pinMode(O_VOL, OUTPUT);
@@ -24,26 +31,23 @@ void setup() {
   pinMode(O_SRV, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
 
-  grosServo.write(c_ouvert);
   grosServo.attach(O_SRV);
+  grosServo.writeMicroseconds(c_ouvert);
 }
 
-// to be deleted
-  enum {E_INITIAL, E_RAMPE, E_VOL, E_PARACHUTE, E_OUVERT, E_FIN};
-  bool jack_precedent(HIGH), jack_courant(HIGH), jack(false);
-  bool etat_servo(HIGH), etat_servo_precedent(HIGH);
-  uint8_t etat_precedent(E_INITIAL), etat(E_INITIAL);
-  uint32_t instant_anti_rebond(0);
-  uint32_t instant_decollage, tps_courant, delai_parachute(0);
-  uint32_t instant_servo;
-// end to be deleted
+enum {E_INITIAL, E_RAMPE, E_VOL, E_PARACHUTE, E_FIN};
+bool jack_precedent(HIGH), jack_courant(HIGH), jack(false);
+bool etat_servo(LOW), etat_servo_precedent(LOW);
+uint8_t etat_precedent(E_INITIAL), etat(E_INITIAL);
+uint32_t instant_anti_rebond(0);
+uint32_t instant_decollage, tps_courant, delai_parachute(0);
 
 void loop() {
   #ifdef DEBUG
-    Serial.print("etat\t\t"); Serial.println(etat);
-    Serial.print("etat_servo\t"); Serial.println(etat_servo);
-    Serial.print("delai_parachute\t"); Serial.println(tps_courant - instant_decollage);
-    Serial.print("jack mise\t\t"); Serial.println(jack);
+    Serial.print(etat); Serial.print('\t');
+    Serial.print(etat_servo); Serial.print('\t');
+    Serial.print(jack); Serial.print('\t');
+    Serial.print(tps_courant - instant_decollage); Serial.print('\r');
     delay(10);
   #endif
 
@@ -57,14 +61,13 @@ void loop() {
     jack_precedent = jack_courant;
   }
 
-  //jack = !digitalRead(I_JCK);
-
 ////////////////////////////////////////////////////////////////////////////////
 
   /* bloc machine a etat */
   switch (etat){
     case E_INITIAL:
-      if (jack){
+      etat_servo = LOW;
+      if (!jack){
         etat = E_RAMPE;
         digitalWrite(O_ARM, HIGH);
       }
@@ -72,7 +75,7 @@ void loop() {
     ////////////////////////////////////////
     case E_RAMPE:
       etat_servo = HIGH;
-      if (!jack){
+      if (jack){
         instant_decollage = millis();
         etat = E_VOL;
         digitalWrite(O_VOL, HIGH);
@@ -81,9 +84,10 @@ void loop() {
     ////////////////////////////////////////
     case E_VOL:
       tps_courant = millis();
-      if (tps_courant - instant_decollage > c_dureeVol)
+      if (tps_courant - instant_decollage > c_dureeVol){
         etat = E_PARACHUTE;
         etat_servo = LOW;
+      }
       break;
     ////////////////////////////////////////
     case E_PARACHUTE:
@@ -99,13 +103,8 @@ void loop() {
 ////////////////////////////////////////////////////////////////////////////////
 
   /* bloc servomoteur econome */
-  if (etat != etat_precedent){
-    instant_servo = millis();
-    grosServo.write(etat_servo ? c_ferme : c_ouvert);
-    grosServo.attach(O_SRV);
-    etat_precedent = etat;
-  }
-
-  if ((etat == E_INITIAL || etat == E_FIN) && millis() - instant_servo > c_delaiServo)
-    grosServo.detach();  // couper le servo en phase autre que vol
+  // if (etat != etat_precedent){
+    grosServo.writeMicroseconds(etat_servo ? c_ferme : c_ouvert);
+    // etat_precedent = etat;
+  // }
 }

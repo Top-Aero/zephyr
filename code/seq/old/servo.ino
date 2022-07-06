@@ -11,37 +11,26 @@ uint8_t const p_srv(6);
 uint8_t const p_led(13);
 uint8_t const p_potard(15);
 
-// variables de travail
+int fin, ini;
 Servo srv;
-int th(0);
-
-void mouvement_angulaire(int cible){
-  int ini = srv.read();
-  int inc = (ini < cible) - (ini > cible);
-
-  Serial.print(ini); Serial.print(" -> "); Serial.print(cible);
-
-  for (int angle(ini); angle != cible; angle += inc){
-    if (abs(cible - angle) < 3)
-      break;
-    srv.write(angle);
-    delay(10);
-  }
-}
 
 void setup() {
   pinMode(p_led, OUTPUT);
   pinMode(p_potard, INPUT);
 
-  srv.write(
   srv.attach(p_srv);
 
   digitalWrite(p_led, HIGH);
 }
 
 void loop() {
-  th = map(analogRead(p_potard), 0, 1023, 0, 180);
-  Serial.println(th);
-  mouvement_angulaire(th);
-  delay(10);
+  ini = srv.readMicroseconds();
+  fin = map(analogRead(p_potard), 0, 1023, 1500, 2200);
+
+  Serial.print(ini); Serial.print(" -> "); Serial.println(fin);
+
+  if (abs(fin - ini) > 4)
+    srv.writeMicroseconds(fin);
+
+  delay(100);
 }
