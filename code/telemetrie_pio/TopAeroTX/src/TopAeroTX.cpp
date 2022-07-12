@@ -5,91 +5,32 @@
   - Enregistrement des données sur carte uSD
   projet actuel: Zéphyr
   Libre de droit
+
+  Organisation du code :
+  |--TopAeroTX.h
+  |  |--Bibliothèques
+  |  |--Définitions
+  |  |--Déclarations globales
+  |  |--Déclarations des structures
+  |  |--Déclaration des fonctions
+  |--TopAeroTX.cpp
+  |  |--Initialisation des tâches
+  |  |--Tâches
+  |  |--Fonctions
+  |  |--Mains
 */
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                        Bibliothèques                                           //
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#include <WireKinetis.h>
-#include <SoftwareSerial.h>
-#include <Adafruit_Sensor.h>  //librairie Adafruit générale des capteurs 
-#include <Adafruit_BNO055.h>  //librairie du module inertiel /* Accélération */
-#include <utility/imumaths.h> //librairie pour le fonctionnement du module inertiel 
-#include <Adafruit_GPS.h> //librairie Adafruit du module GPS /* GPS */
-#include <SD.h>       /* uSD */
-#include <SPI.h>    
+#include "TopAeroTX.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                        Définitions                                             //
+//                                        Initialisation des tâches                               //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define SCB_AIRCR (*(volatile uint32_t *)0xE000ED0C) // Application Interrupt and Reset Control location
-#define BNO055_SAMPLERATE_DELAY_MS (5)        /* Accélération */
-#define ALTMODE //comment out for barometer mode; default is altitude mode 
-#define mySerial Serial1      /* GPS */
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                        Déclarations globales                                   //
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-                      /* GPS */
-static const int RXPin = 0, TXPin = 1;      
-static const uint32_t GPSBaud = 9600;
-SoftwareSerial ss(RXPin, TXPin);
-Adafruit_GPS GPS(&mySerial);
-bool firstGPS;
-
-                      /* LED*/
-int ledState=LOW;
-unsigned long preMillis=0;
-
-                      /* Accélération */
-Adafruit_BNO055 bno = Adafruit_BNO055(55); //by default address is 0x29 or 0x28
-// @mib
-float tab_acl[3] = {0, 0, 0};
-
-                      /*Pression*/
-float tension1, P1, tension2, P2, tension3, P3, tension4, P4, tension5, P5, tension6, P6, tension7, P7, tension8, P8, tension9, P9, tension10, P10, tension11, P11, tension12, P12, tension13, P13, tension14, P14;//Déclaration des variables tension et pression
-
-bool first=true;      /* Altitude */
-float altm0=0.0;
-const int SENSORADDRESS = 0x60; // address specific to the MPL3115A1, value found in datasheet 
-float altsmooth = 0; //for exponential smoothing          
-byte IICdata[5] = {0,0,0,0,0}; //buffer for sensor data 
-float firstalt=0.0;
-bool alt_must_adjust = true; //condition pour ajuster l'altitude au bout de 1min
-
-int comdata=0;       /* Radio */
-int data_lenght;
-String comstr;
-char* frame;
-SoftwareSerial lora(9,10);
-
-File myFile;        /* uSD */
-File tableau;
-const int chipSelect = BUILTIN_SDCARD;
-int i=0; //Compteur du nombre de mesures
-
-//Déclaration des fonctions à cause du passage en .cpp
-void accel_read_data();
-float altitude_read_data();
-float Alt_Read();
-byte IIC_Read(byte regAddr);
-void IIC_ReadData();
-void IIC_Write(byte regAddr, byte value);
-
-                    /* timer */
-uint32_t timer = millis();
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                        Initialisation                                          //
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void setup() {
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////
-                                                  /* Initialisation des pins */
-
+ 
+                                     /* Initialisation des pins */
+void mise_en_place(){
+  pinMode(7, OUTPUT);
+  pinMode(8, INPUT_PULLUP);
   Wire.setSDA(8); // Activation du mode alternatif du pin
   Wire.setSCL(7); // Activation du mode alternatif du pin                       
   Wire.begin(); //join i2c bus    
@@ -112,21 +53,24 @@ void setup() {
     return;
   }
   Serial.println("initialization done.");
-
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////
-                                                  /* GPS */
+}
+ 
+                                                /* GPS */
+void setup_gps() {
   // this line to turn on only the "minimum recommended" data
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY);
   // Set the update rate
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_10HZ); //taux de rafraichissement 10Hz, en réalité il n'est pas représentatif 
   //du rafraichissement réel, mais il vaut mieux entrer la commande tout de même
-  
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////
-                                              /* Accélération */
+}
 
+                                            /* Accélération */
+void setup_accel(){
   bno.setExtCrystalUse(true);
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////
-                                                /* Altitude */       
+}
+ 
+                                              /* Altitude */    
+void setup_alt(){
   IIC_Write(0x2D,0); //write altitude offset=0 (because calculation below is based on offset=0)
   //Altitude mode
   IIC_Write(0x26, 0b10111011); //bit 2 is one shot mode //0xB9 = 0b10111001
@@ -135,10 +79,10 @@ void setup() {
   IIC_ReadData(); //
   firstalt=Alt_Read();
   altsmooth=Alt_Read()-firstalt;
+}
 
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////
-                                                 /* Radio */ 
-
+                                                /* Radio */ 
+void setup_radio(){
   lora.println("AT+BAND=869650000\r\n"); //commande pour appliquer la fréquence d'émission ou réception du module
   //ici 869,65Mhz
   delay(20);
@@ -146,9 +90,10 @@ void setup() {
   //Spreading factor = 7, Bandwidth = 9 (500kHz), Coding rate = 4, Programmed Preamble = 4
   delay(2000);
   Serial.println("Communication prête");
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////
-                                                 /* uSD */
+}
 
+                                                /* uSD */
+void setup_uSD(){
   myFile = SD.open("zephyr.txt", FILE_WRITE);
   if (myFile) {
     myFile.println("Zephyr_new_stream");
@@ -171,19 +116,14 @@ void setup() {
     tableau.flush();
   }
   delay(2000);
-}//fin setup
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                        Bouclage                                                //
+//                                        Tâches                                                  //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void loop() {
- 
-  String framestr;
-
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////
-                                      /*Pression*/
-
+                                                  /*Pression*/
+void loop_pression(){
   tension2 = analogRead(A16) * 5.0 / 1023.0;
   P2 = (tension2 / 0.002 - 39.75);
   Serial.println("P2 :");
@@ -256,9 +196,10 @@ void loop() {
   Serial.println("P14 :");
   Serial.print(P14, 0);
   Serial.println(" hPa");
-  
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////  
-                                                      /* GPS */
+}
+
+                                                    /* GPS */
+void loop_gps(struct gps_s* gps_s){
   firstGPS=true;
   while (ss.available() > 0){
   GPS.read();
@@ -267,15 +208,15 @@ void loop() {
     if(firstGPS){
       Serial.println(frame);
       firstGPS=not(firstGPS);
-      framestr=String(frame);
-   
+      gps_s->framestr=String(frame);  
     }
   }
-  
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////
-  unsigned long ms = millis();                     /* LED blink */
-  if((ms-preMillis)>=250){
-    preMillis=ms;
+}
+
+                                                   /* LED blink */
+void loop_led(struct time_s* time_s){
+  if((time_s->ms-preMillis)>=250){
+    preMillis=time_s->ms;
     if(ledState==LOW){
       ledState=HIGH;
     }
@@ -284,32 +225,33 @@ void loop() {
     }
     digitalWrite(13,ledState);
   }
-  
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////
-                                              /* Accélération (m/s^2) */
+}
+
+                                                /* Accélération (m/s^2) */
+void loop_accel(){
   // mib note : plus besoin a compter du 2021-07-20.
   //Serial.print(accelModule);
   //Serial.println("");
   accel_read_data();
+}
 
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////
                                                   /* Altitude (m) */ 
-  float altitudeSmoothed=altitude_read_data()-altm0;//soustraire altm0 pour commencer à l'altitude 0
+void loop_alt(struct time_s* time_s, struct alt_s* alt_s){
+  alt_s->altitudeSmoothed=altitude_read_data()-altm0;//soustraire altm0 pour commencer à l'altitude 0
   if(first==true){                            // +/- 1m de précision
-    if(ms>60000){ //on attend 1min pour avoir une valeur stable d'altitude
-      altm0=altitudeSmoothed;
+    if(time_s->ms>60000){ //on attend 1min pour avoir une valeur stable d'altitude
+      altm0=alt_s->altitudeSmoothed;
       first=false;
     }
   }
   
-  Serial.print(ms);
+  Serial.print(time_s->ms);
   Serial.println("");
-  
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////
-                                                  /* Radio */
-                                                  
-  String mes=" alt="+String(altitudeSmoothed)+" acx="+String(tab_acl[0])+" acy="+String(tab_acl[1])+" acz="+String(tab_acl[2])+" tps="+String(millis())+" gps="+framestr;
-  
+}
+
+                                                      /* Radio */
+void loop_radio(struct gps_s* gps_s, struct alt_s* alt_s){
+  String mes=" alt="+String(alt_s->altitudeSmoothed)+" acx="+String(tab_acl[0])+" acy="+String(tab_acl[1])+" acz="+String(tab_acl[2])+" tps="+String(millis())+" gps="+gps_s->framestr;
   String datas=mes+" P11="+String(P11)+" P12="+String(P12);
   datas=datas.trim();
   String cmd="AT+SEND=0,"+String(mes.length()) +","+ datas +"\r\n";
@@ -321,17 +263,18 @@ void loop() {
   Serial.println(cmd);
   delay(35); //le délai influe sur la transmission radio, si trop court il y a une probabilité +/- importante 
   //que les messages soient coupés
+}
 
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////
                                                       /* uSD */
-  myFile = SD.open("zephyr.txt", FILE_WRITE);
+void loop_uSD(struct gps_s* gps_s, struct alt_s* alt_s){
+    myFile = SD.open("zephyr.txt", FILE_WRITE);
   if (myFile) {
     myFile.print("Mesure ");
     myFile.println(i);
     myFile.print("\nTemps = ");
     myFile.println(String(millis()));
     myFile.print("Altitude = ");
-    myFile.println(String(altitudeSmoothed));
+    myFile.println(String(alt_s->altitudeSmoothed));
     myFile.print("Accéleration en X = ");
     myFile.println(String(tab_acl[0]));
     myFile.print("Accéleration en Y = ");
@@ -340,7 +283,7 @@ void loop() {
     myFile.println(String(tab_acl[2]));
     //myFile.println(String(accelModule));
     myFile.print("Coordonnées GPS = ");
-    myFile.println(framestr);
+    myFile.println(gps_s->framestr);
     myFile.print("Pression 2 = "); myFile.println(String(P2));
     myFile.print("Pression 4 = "); myFile.println(String(P4));
     myFile.print("Pression 5 = "); myFile.println(String(P5));
@@ -358,55 +301,35 @@ void loop() {
   }
   tableau = SD.open("zephyr.csv", FILE_WRITE);
   if (tableau) {
-    tableau.print(i);
-    tableau.print(";"); 
-    tableau.print(millis());
-    tableau.print(";"); 
-    tableau.print(altitudeSmoothed);
-    tableau.print(";");
-    tableau.print(tab_acl[0]);
-    tableau.print(";");
-    tableau.print(tab_acl[1]);
-    tableau.print(";");
-    tableau.print(tab_acl[2]);
-    tableau.print(";");
-    tableau.print(framestr);
-    tableau.print(";");
-    tableau.print(P2);
-    tableau.print(";");
-    tableau.print(P4);
-    tableau.print(";");
-    tableau.print(P5);
-    tableau.print(";");
-    tableau.print(P6);
-    tableau.print(";");
-    tableau.print(P7);
-    tableau.print(";");
-    tableau.print(P8);
-    tableau.print(";");
-    tableau.print(P9);
-    tableau.print(";");
-    tableau.print(P10);
-    tableau.print(";");
-    tableau.print(P11);
-    tableau.print(";");
-    tableau.print(P12);
-    tableau.print("\n");
-    tableau.print(P13);
-    tableau.print(";");
-    tableau.print(P14);
-    tableau.print("\n");
+     printcsv(tableau,i);
+     printcsv(tableau,millis());
+     printcsv(tableau,alt_s->altitudeSmoothed);
+     printcsv(tableau,tab_acl[0]);
+     printcsv(tableau,tab_acl[1]);
+     printcsv(tableau,tab_acl[2]);
+     printcsv(tableau,gps_s->framestr);
+     printcsv(tableau,P2);
+     printcsv(tableau,P4);
+     printcsv(tableau,P5);
+     printcsv(tableau,P6);
+     printcsv(tableau,P7);
+     printcsv(tableau,P8);
+     printcsv(tableau,P9);
+     printcsv(tableau,P10);
+     printcsv(tableau,P11);
+     printcsv(tableau,P12);
+     printcsv(tableau,P13);
+     printcsv(tableau,P14);
+     tableau.print("\n");
     tableau.close();
   }
-  i=i+1;
- delay(200);
-}//fin loop
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                        Fonctions externes                                      //
+//                                        Fonctions                                               //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////
+ 
                                                   /* Accélération */
 void accel_read_data(){
   /* Get a new sensor event */
@@ -431,10 +354,9 @@ void accel_read_data(){
   tab_acl[2] = accelerometer.z();
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
                                                     /* Altitude */
-                                      //by Henry Lahr, 2013-02-27, libre de droit
 float altitude_read_data(){
+                                        //by Henry Lahr, 2013-02-27, libre de droit
   // This function reads the altitude (or barometer) and temperature registers, then prints their values
   // variables for the calculations
   float altbaro;
@@ -499,3 +421,34 @@ void IIC_Write(byte regAddr, byte value){
   Wire.write(value);
   Wire.endTransmission(true);
 }
+
+                                                    /* lisibilité d'écriture */
+void printcsv(File tab, float val){
+  tab.print(val);
+  tab.print(";");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                        Mains                                                   //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void setup() {
+  mise_en_place();
+  setup_gps();
+  setup_accel();
+  setup_alt();
+  setup_radio();
+  setup_uSD();
+}//fin setup
+
+void loop() {
+  loop_pression();
+  loop_gps(&gps_s);   
+  loop_led(&time_s);
+  loop_accel();
+  loop_alt(&time_s, &alt_s);
+  loop_radio(&gps_s, &alt_s);
+  loop_uSD(&gps_s, &alt_s);
+  i=i+1;
+  delay(200);
+}//fin loop
