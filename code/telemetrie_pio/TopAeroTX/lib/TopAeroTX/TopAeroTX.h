@@ -30,7 +30,8 @@
 #include <SoftwareSerial.h>
 #include <Adafruit_Sensor.h>  //librairie Adafruit générale des capteurs 
 #include <Adafruit_BNO055.h>  //librairie du module inertiel /* Accélération */
-#include <utility/imumaths.h> //librairie pour le fonctionnement du module inertiel 
+#include <utility/imumaths.h> //librairie pour le fonctionnement du module inertie
+#include <Adafruit_MPL3115A2.h>
 #include <Adafruit_GPS.h> //librairie Adafruit du module GPS /* GPS */
 #include <SD.h>       /* uSD */
 #include <SPI.h>    
@@ -69,13 +70,16 @@ float tab_acl[3] = {0, 0, 0};
                       /*Pression*/
 float tension1, P1, tension2, P2, tension3, P3, tension4, P4, tension5, P5, tension6, P6, tension7, P7, tension8, P8, tension9, P9, tension10, P10, tension11, P11, tension12, P12, tension13, P13, tension14, P14;//Déclaration des variables tension et pression
 
-bool first=true;      /* Altitude */
+              /* Altitude */
+
+Adafruit_MPL3115A2 baro;
+/*ool first=true;
 float altm0=0.0;
-const int SENSORADDRESS = 0x60; // address specific to the MPL3115A1, value found in datasheet 
+//const int SENSORADDRESS = 0x60; // address specific to the MPL3115A1, value found in datasheet 
 float altsmooth = 0; //for exponential smoothing          
 byte IICdata[5] = {0,0,0,0,0}; //buffer for sensor data 
 float firstalt=0.0;
-bool alt_must_adjust = true; //condition pour ajuster l'altitude au bout de 1min
+bool alt_must_adjust = true; //condition pour ajuster l'altitude au bout de 1min*/
 
 int comdata=0;       /* Radio */
 int data_lenght;
@@ -109,6 +113,7 @@ struct time_s {
 
 struct alt_s {
     float altitudeSmoothed;
+    int sensoraddress;
 };
 
 //struct mailbox_s    mb = {.state = EMPTY};  NO NEED MAILBOX
@@ -121,10 +126,10 @@ struct alt_s        alt_s;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void accel_read_data();
-float altitude_read_data();
+float altitude_read_data(struct alt_s*);
 float Alt_Read();
-byte IIC_Read(byte regAddr);
-void IIC_ReadData();
-void IIC_Write(byte regAddr, byte value);
+byte IIC_Read(byte regAddr, struct alt_s*);
+void IIC_ReadData(struct alt_s*);
+void IIC_Write(byte regAddr, byte value, struct alt_s*);
 void printcsv(File tab, float val);
 void printcsv(File tab, String val); //Surcharge

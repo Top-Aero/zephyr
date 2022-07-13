@@ -40,19 +40,8 @@ void mise_en_place(){
   GPS.begin(9600); //baudrate obligé du module
   ss.begin(GPSBaud);
     /* Initialise the sensor */
-  if(!bno.begin())
-  {
-    Serial.print("Couldnt find accelerator sensor");
-    while(1);
-  }
   lora.begin(115200); //baudrate obligé du module
   delay(20);
-  Serial.print("Initializing SD card...");
-  if (!SD.begin(chipSelect)) {
-    Serial.println("initialization failed!");
-    return;
-  }
-  Serial.println("initialization done.");
 }
  
                                                 /* GPS */
@@ -66,19 +55,31 @@ void setup_gps() {
 
                                             /* Accélération */
 void setup_accel(){
+  if(!bno.begin())
+  {
+    Serial.print("Couldnt find accelerator sensor");
+    while(1);
+  }
   bno.setExtCrystalUse(true);
 }
  
                                               /* Altitude */    
-void setup_alt(){
-  IIC_Write(0x2D,0); //write altitude offset=0 (because calculation below is based on offset=0)
+void setup_alt(struct alt_s* alt_s){
+  
+  if (!baro.begin()) {
+    Serial.println("Couldnt find altimeter sensor");
+    while(1);
+  }
+  
+  /*alt_s->sensoraddress= 0x60; // address specific to the MPL3115A1, value found in datasheet 
+  IIC_Write(0x2D,0, alt_s); //write altitude offset=0 (because calculation below is based on offset=0)
   //Altitude mode
-  IIC_Write(0x26, 0b10111011); //bit 2 is one shot mode //0xB9 = 0b10111001
-  IIC_Write(0x26, 0b10111001); //must clear oversampling (OST) bit, otherwise update will be once per second
+  IIC_Write(0x26, 0b10111011, alt_s); //bit 2 is one shot mode //0xB9 = 0b10111001
+  IIC_Write(0x26, 0b10111001, alt_s); //must clear oversampling (OST) bit, otherwise update will be once per second
   delay(1000); //wait for measurement
-  IIC_ReadData(); //
+  IIC_ReadData(alt_s); //
   firstalt=Alt_Read();
-  altsmooth=Alt_Read()-firstalt;
+  altsmooth=Alt_Read()-firstalt;*/
 }
 
                                                 /* Radio */ 
@@ -94,6 +95,12 @@ void setup_radio(){
 
                                                 /* uSD */
 void setup_uSD(){
+  Serial.print("Initializing SD card...");
+  if (!SD.begin(chipSelect)) {
+    Serial.println("initialization failed!");
+    return;
+  }
+  Serial.println("initialization done.");
   myFile = SD.open("zephyr.txt", FILE_WRITE);
   if (myFile) {
     myFile.println("Zephyr_new_stream");
@@ -237,7 +244,8 @@ void loop_accel(){
 
                                                   /* Altitude (m) */ 
 void loop_alt(struct time_s* time_s, struct alt_s* alt_s){
-  alt_s->altitudeSmoothed=altitude_read_data()-altm0;//soustraire altm0 pour commencer à l'altitude 0
+  alt_s->altitudeSmoothed=baro.getAltitude();
+  /*alt_s->altitudeSmoothed=altitude_read_data(alt_s)-altm0;//soustraire altm0 pour commencer à l'altitude 0
   if(first==true){                            // +/- 1m de précision
     if(time_s->ms>60000){ //on attend 1min pour avoir une valeur stable d'altitude
       altm0=alt_s->altitudeSmoothed;
@@ -246,7 +254,7 @@ void loop_alt(struct time_s* time_s, struct alt_s* alt_s){
   }
   
   Serial.print(time_s->ms);
-  Serial.println("");
+  Serial.println("");*/
 }
 
                                                       /* Radio */
@@ -355,7 +363,8 @@ void accel_read_data(){
 }
 
                                                     /* Altitude */
-float altitude_read_data(){
+/*
+float altitude_read_data(struct alt_s* alt_s){
                                         //by Henry Lahr, 2013-02-27, libre de droit
   // This function reads the altitude (or barometer) and temperature registers, then prints their values
   // variables for the calculations
@@ -364,14 +373,14 @@ float altitude_read_data(){
   //one reading seems to take 4ms (datasheet p.33);
   //oversampling at 32x=130ms interval between readings seems to be optimal for 10Hz
   //#ifdef ALTMODE //Altitude mode
-    IIC_Write(0x26, 0b10111011); //bit 2 is one shot mode //0xB9 = 0b10111001
-    IIC_Write(0x26, 0b10111001); //must clear oversampling (OST) bit, otherwise update will be once per second
+    IIC_Write(0x26, 0b10111011, alt_s); //bit 2 is one shot mode //0xB9 = 0b10111001
+    IIC_Write(0x26, 0b10111001, alt_s); //must clear oversampling (OST) bit, otherwise update will be once per second
   //#else //Barometer mode
     //IIC_Write(0x26, 0b00111011); //bit 2 is one shot mode //0xB9 = 0b10111001
     //IIC_Write(0x26, 0b00111001); //must clear oversampling (OST) bit, otherwise update will be once per second
   //#endif
   //delay(20); //read with 10Hz; drop this if calling from an outer loop
-  IIC_ReadData(); //reads registers from the sensor
+  IIC_ReadData(alt_s); //reads registers from the sensor
   #ifdef ALTMODE //converts byte data into float; change function to Alt_Read() or Baro_Read()
     altbaro = Alt_Read()-firstalt;
   #endif
@@ -394,36 +403,41 @@ float Alt_Read(){
   return((float)((m_altitude << 8)|c_altitude) + l_altitude);
 }
  
-byte IIC_Read(byte regAddr){
+byte IIC_Read(byte regAddr, struct alt_s* alt_s){
   // This function reads one byte over I2C
-  Wire.beginTransmission(SENSORADDRESS);
+  Wire.beginTransmission(alt_s->sensoraddress);
   Wire.write(regAddr); // Address of CTRL_REG1
   Wire.endTransmission(false); // Send data to I2C dev with option for a repeated start. Works in Arduino V1.0.1
-  Wire.requestFrom(SENSORADDRESS, 1);
+  Wire.requestFrom(alt_s->sensoraddress, 1);
   return Wire.read();
 }
  
-void IIC_ReadData(){  //Read Altitude/Barometer and Temperature data (5 bytes)
+void IIC_ReadData(struct alt_s* alt_s){  //Read Altitude/Barometer and Temperature data (5 bytes)
   //This is faster than reading individual register, as the sensor automatically increments the register address,
   //so we just keep reading...
   byte i=0;
-  Wire.beginTransmission(SENSORADDRESS);
+  Wire.beginTransmission(alt_s->sensoraddress);
   Wire.write(0x01); // Address of CTRL_REG1
   Wire.endTransmission(false);
-  Wire.requestFrom(SENSORADDRESS,5); //read 5 bytes: 3 for altitude or pressure, 2 for temperature
+  Wire.requestFrom(alt_s->sensoraddress,5); //read 5 bytes: 3 for altitude or pressure, 2 for temperature
   while(Wire.available()) IICdata[i++] = Wire.read();
 }
  
-void IIC_Write(byte regAddr, byte value){
+void IIC_Write(byte regAddr, byte value, struct alt_s* alt_s){
   // This function writes one byto over I2C
-  Wire.beginTransmission(SENSORADDRESS);
+  Wire.beginTransmission(alt_s->sensoraddress);
   Wire.write(regAddr);
   Wire.write(value);
   Wire.endTransmission(true);
 }
-
+*/
                                                     /* lisibilité d'écriture */
 void printcsv(File tab, float val){
+  tab.print(val);
+  tab.print(";");
+}
+
+void printcsv(File tab, String val){
   tab.print(val);
   tab.print(";");
 }
@@ -436,7 +450,7 @@ void setup() {
   mise_en_place();
   setup_gps();
   setup_accel();
-  setup_alt();
+  setup_alt(&alt_s);
   setup_radio();
   setup_uSD();
 }//fin setup
