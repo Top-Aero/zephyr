@@ -6,7 +6,7 @@
 
 ## Description
 Le vent d'Ouest, fils d'Astreos et de je sais plus qui, attise le feu de notre inspiration.
-Projet de fusée expérimentale transsonique de l'association [Top Aéro](https://www.top-aero.com/) de Sorbonne Universités Science, dans le cadre de la campagne de lancements C'space.
+Projet de fusée expérimentale transsonique de l'association [Top Aéro](https://www.top-aero.com/) de Sorbonne Universités Sciences, dans le cadre de la campagne de lancements C'space.
 
 ## Objectif
 Mesurer la pression autour de l'ogive de la fusée pour comparer ce que l'on observe à la simulation.
