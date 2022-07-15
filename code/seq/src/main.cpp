@@ -9,7 +9,7 @@
 #define O_EJC (21)  // signal ejection
 #define O_SRV (9)   // commande servomoteur
 
-enum {E_VEILLE, E_ARME, E_VOL, E_EJECTION, E_FIN};  // etats du sequenceur
+enum {E_VEILLE, E_ARME, E_VOL, E_EJECTION};  // etats du sequenceur
 uint16_t const c_ouvert(1916);         // step ouverture systeme separation (us)
 uint16_t const c_ferme(2200);          // step fermeture systeme separation (us)
 uint16_t const c_dureeVol(19500);      // duree phase vol avant ejection (ms)
@@ -18,25 +18,29 @@ uint16_t const c_delaiAntiRebond(50);  // delai anti-rebond prise jack (ms)
 bool etat_servo(LOW), etat_servo_precedent(LOW);
 bool jack_precedent(HIGH), jack_courant(HIGH), jack(false);
 uint8_t etat_precedent(E_VEILLE), etat(E_VEILLE);
-elapsedMillis tpsJck, tpsVol; 
+elapsedMillis tpsJck, tpsVol;
 Servo grosServo;
 
 void setup() {
   #ifdef DEBUG
-    delay(5000);
     Serial.begin(9600);
+    delay(5000);
     Serial.println("\netat\tservo\tjack\tduree vol");
   #endif
 
-  pinMode(I_JCK, INPUT_PULLDOWN);
+  pinMode(I_JCK, INPUT_PULLUP);
   pinMode(O_ARM, OUTPUT);
   pinMode(O_VOL, OUTPUT);
   pinMode(O_EJC, OUTPUT);
   pinMode(O_SRV, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
 
+  digitalWrite(LED_BUILTIN, HIGH);
+
   grosServo.writeMicroseconds(c_ouvert);
   grosServo.attach(O_SRV);
+  // delay(500);
+  // grosServo.detach();
 }
 
 void loop() {
@@ -63,8 +67,8 @@ void loop() {
   /* bloc machine a etat */
   switch (etat){
     case E_VEILLE:
-      grosServo.writeMicroseconds(c_ouvert);
-      if (!jack){
+      digitalWrite(O_ARM, LOW);
+      if (jack){
         etat = E_ARME;
         digitalWrite(O_ARM, HIGH);
       }
@@ -72,7 +76,9 @@ void loop() {
     ////////////////////////////////////////
     case E_ARME:
       grosServo.writeMicroseconds(c_ferme);
-      if (jack){
+      // grosServo.detach();
+      digitalWrite(O_ARM, HIGH);
+      if (!jack){
         tpsVol = 0;
         etat = E_VOL;
         digitalWrite(O_VOL, HIGH);
@@ -81,6 +87,8 @@ void loop() {
     ////////////////////////////////////////
     case E_VOL:
       grosServo.writeMicroseconds(c_ferme);
+      // grosServo.attach(O_SRV);
+      digitalWrite(O_VOL, HIGH);
       if (tpsVol > c_dureeVol){
         etat = E_EJECTION;
         etat_servo = LOW;
@@ -89,11 +97,8 @@ void loop() {
     ////////////////////////////////////////
     case E_EJECTION:
       grosServo.writeMicroseconds(c_ouvert);
-      etat = E_FIN;
       digitalWrite(O_EJC, HIGH);
-      break;
-    ////////////////////////////////////////
-    case E_FIN:
+      etat = E_VEILLE;
       break;
   }
 }
