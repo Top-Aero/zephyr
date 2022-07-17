@@ -29,6 +29,7 @@
  
                                      /* Initialisation des pins */
 void mise_en_place(){
+  delay(200);
   pinMode(7, OUTPUT);
   pinMode(8, INPUT_PULLUP);
   Wire.setSDA(8); // Activation du mode alternatif du pin
@@ -38,8 +39,7 @@ void mise_en_place(){
   pinMode(13,OUTPUT); //LED
   Serial2.begin(115200);//ouverture port série 2 pour radio
   GPS.begin(9600); //baudrate obligé du module
-  ss.begin(GPSBaud);
-    /* Initialise the sensor */
+  ss.begin(GPSBaud);/* Initialise the sensor */
   lora.begin(115200); //baudrate obligé du module
   delay(20);
 }
@@ -76,7 +76,7 @@ void setup_alt(struct alt_s* alt_s){
 void setup_radio(){
   lora.println("AT+BAND=869650000\r\n"); //commande pour appliquer la fréquence d'émission ou réception du module
   //ici 869,65Mhz
-  delay(20);
+  delay(200);
   lora.println("AT+PARAMETER=7,9,4,4\r\n"); //par défaut = 12,7,1,4 
   //Spreading factor = 7, Bandwidth = 9 (500kHz), Coding rate = 4, Programmed Preamble = 4
   delay(2000);
@@ -121,73 +121,73 @@ void setup_uSD(){
 
                                                   /*Pression*/
 void loop_pression(){
-  tension2 = analogRead(A16) * 5.0 / 1023.0;
+  tension2 = analogRead(A21) * 5.0 / 1023.0;
   P2 = (tension2 / 0.002 - 39.75);
   //Serial.println("P2 :");
   //Serial.print(P2, 0);
   //Serial.println(" hPa");
   
-  tension4 = analogRead(A18) * 5.0 / 1023.0;
+  tension4 = analogRead(A19) * 5.0 / 1023.0;
   P4 = (tension4 / 0.002 - 34.75);
   //Serial.println("P4 :");
   //Serial.print(P4, 0);
   //Serial.println(" hPa");
   
-  tension5 = analogRead(A14) * 5.0 / 1023.0;
+  tension5 = analogRead(A9) * 5.0 / 1023.0;
   P5 = (tension5 / 0.002 - 48.75);
   //Serial.println("P5 :");
   //Serial.print(P5, 0);
   //Serial.println(" hPa");
   
-  tension6 = analogRead(A15) * 5.0 / 1023.0;
+  tension6 = analogRead(A8) * 5.0 / 1023.0;
   P6 = (tension6 / 0.002 - 44.75);
   //Serial.println("P6 :");
   //Serial.print(P6, 0);
   //Serial.println(" hPa");
   
-  tension7 = analogRead(A17) * 5.0 / 1023.0;
+  tension7 = analogRead(A7) * 5.0 / 1023.0;
   P7 = (tension7 / 0.002 - 39.75);
   //Serial.println("P7 :");
   //Serial.print(P7, 0);
   //Serial.println(" hPa");
   
-  tension8 = analogRead(A9) * 5.0 / 1023.0;
+  tension8 = analogRead(A0) * 5.0 / 1023.0;
   P8 = (tension8 / 0.002 - 53.75);
   //Serial.println("P8 :");
   //Serial.print(P8, 0);
   //Serial.println(" hPa");
   
-  tension9 = analogRead(A8) * 5.0 / 1023.0;
+  tension9 = analogRead(A1) * 5.0 / 1023.0;
   P9 = (tension9 / 0.002 - 24.75);
   //Serial.println("P9 :");
   //Serial.print(P9, 0);
   //Serial.println(" hPa");
   
-  tension10 = analogRead(A7) * 5.0 / 1023.0;
+  tension10 = analogRead(A2) * 5.0 / 1023.0;
   P10 = (tension10 / 0.002 - 29.75);
   //Serial.println("P10 :");
   //Serial.print(P10, 0);
   //Serial.println(" hPa");
   
-  tension11 = analogRead(A6) * 5.0 / 1023.0;
+  tension11 = analogRead(A3) * 5.0 / 1023.0;
   P11 = (tension11 / 0.002 - 31.75);
   //Serial.println("P11 :");
   //Serial.print(P11, 0);
   //Serial.println(" hPa");
   
-  tension12 = analogRead(A3) * 5.0 / 1023.0;
+  tension12 = analogRead(A4) * 5.0 / 1023.0;
   P12 = (tension12 / 0.002 - 36.75);
   //Serial.println("P12 :");
   //Serial.print(P12, 0);
   //Serial.println(" hPa");
 
-  tension13 = analogRead(A2) * 5.0 / 1023.0;
+  tension13 = analogRead(A5) * 5.0 / 1023.0;
   P13 = (tension13 / 0.002 - 53.75);
   //Serial.println("P13 :");
   //Serial.print(P13, 0);
   //Serial.println(" hPa");
 
-  tension14 = analogRead(A1) * 5.0 / 1023.0;//Lecture de la tension et conversion en V
+  tension14 = analogRead(A6) * 5.0 / 1023.0;//Lecture de la tension et conversion en V
   P14 = (tension14 / 0.002 - 49.75); //Obtention de la pression en hPa => valeur 93 = offset , a changer pour chaque capteur 
   //Affichage de la pression sur le3moniteur série
   //Serial.println("P14 :");
@@ -203,7 +203,7 @@ void loop_gps(struct gps_s* gps_s){
   char* frame = GPS.lastNMEA();
   GPS.parse(frame);
     if(firstGPS){
-      Serial.println(frame);
+      //Serial.println(frame);
       firstGPS=not(firstGPS);
       gps_s->framestr=String(frame);  
     }
@@ -244,7 +244,7 @@ void loop_radio(struct gps_s* gps_s, struct alt_s* alt_s){
   while(lora.available()){
     Serial.write(lora.read());
   }
-  Serial.print(cmd);
+  //Serial.print(cmd);
   delay(35); //le délai influe sur la transmission radio, si trop court il y a une probabilité +/- importante 
   //que les messages soient coupés
 }

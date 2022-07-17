@@ -28,7 +28,7 @@
 
 #include <WireKinetis.h>
 #include <SoftwareSerial.h>
-//#include <Adafruit_Sensor.h>  //librairie Adafruit générale des capteurs 
+#include <Adafruit_Sensor.h>  //librairie Adafruit générale des capteurs 
 #include <Adafruit_BNO055.h>  //librairie du module inertiel /* Accélération */
 #include <utility/imumaths.h> //librairie pour le fonctionnement du module inertie
 #include <Adafruit_MPL3115A2.h>
@@ -61,7 +61,7 @@ int ledState=LOW;
 unsigned long preMillis=0;
 
                       /* Accélération */
-Adafruit_BNO055 bno = Adafruit_BNO055(55); //by default address is 0x29 or 0x28
+Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28); //by default address is 0x29 or 0x28
 // @mib
 float tab_acl[3] = {0, 0, 0};
 
@@ -76,7 +76,7 @@ int comdata=0;
 int data_lenght;
 String comstr;
 char* frame;
-SoftwareSerial lora(9,10);
+SoftwareSerial lora(31,32);
 
                         /* uSD */
 File myFile;        
