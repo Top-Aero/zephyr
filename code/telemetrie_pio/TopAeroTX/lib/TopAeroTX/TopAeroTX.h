@@ -69,7 +69,13 @@ float tab_acl[3] = {0, 0, 0};
 float tension1, P1, tension2, P2, tension3, P3, tension4, P4, tension5, P5, tension6, P6, tension7, P7, tension8, P8, tension9, P9, tension10, P10, tension11, P11, tension12, P12, tension13, P13, tension14, P14;//Déclaration des variables tension et pression
 
                      /* Altitude */
-Adafruit_MPL3115A2 baro;
+bool first=true;
+float altm0=0.0;
+#define ALTMODE //comment out for barometer mode; default is altitude mode 
+const int SENSORADDRESS = 0x60; // address specific to the MPL3115A1, value found in datasheet 
+float altsmooth = 0; //for exponential smoothing          
+byte IICdata[5] = {0,0,0,0,0}; //buffer for sensor data 
+float firstalt=0.0;
 
                        /* Radio */
 int comdata=0;       
@@ -84,23 +90,59 @@ File tableau;
 const int chipSelect = BUILTIN_SDCARD;
 int i=0; //Compteur du nombre de mesures
 
+                        /* Timers de délais de fonction trop lentes */
+#define MAX_WAIT_FOR_TIMER 2
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                       Déclarations des structures                              //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct gps_s {
-    String framestr; 
+    String framestr;
+    String lon;
+    String lat; 
 };
 
 struct time_s {
     elapsedMillis ms;
 };
 
-struct alt_s {
-    float altitudeSmoothed;
-    int sensoraddress;
+struct pression_s{
+    int timer;
+    unsigned long period;
 };
 
+struct accel_s{
+    int timer;
+    unsigned long period;
+};
+
+struct alt_s {
+    int timer;
+    unsigned long period;
+    float altitude;
+};
+
+struct radio_s{
+    int timer;
+    unsigned long period;
+};
+
+struct uSD_s{
+    int timer;
+    unsigned long period;
+};
+
+struct debug_s{
+    int timer;
+    unsigned long period;
+};
+
+struct pression_s   pression_s;
+struct uSD_s        uSD_s;
+struct radio_s      radio_s;
+struct accel_s      accel_s;
+struct debug_s      debug_s;
 struct gps_s        gps_s;
 struct time_s       time_s;
 struct alt_s        alt_s;
@@ -112,3 +154,9 @@ struct alt_s        alt_s;
 void accel_read_data();
 void printcsv(File tab, float val);
 void printcsv(File tab, String val); //Surcharge
+unsigned int waitFor(int timer, unsigned long period);
+float altitude_read_data();
+float Alt_Read();
+byte IIC_Read(byte regAddr);
+void IIC_ReadData();
+void IIC_Write(byte regAddr, byte value);
