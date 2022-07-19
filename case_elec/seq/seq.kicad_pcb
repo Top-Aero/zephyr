@@ -5,6 +5,16 @@
   )
 
   (paper "A4")
+  (title_block
+    (title "Séquenceur – Schéma de câblage")
+    (date "2022-07-15")
+    (rev "3")
+    (company "Top Aéro")
+    (comment 1 "Zéphyr")
+    (comment 2 "FX33")
+    (comment 3 "Mohamed-iadh BANI & Théo TUGAYÉ")
+  )
+
   (layers
     (0 "F.Cu" signal)
     (31 "B.Cu" signal)
@@ -926,12 +936,18 @@
     (attr board_only exclude_from_pos_files exclude_from_bom)
     (fp_text reference "G***" (at 0 0) (layer "F.SilkS") hide
       (effects (font (size 1.524 1.524) (thickness 0.3)))
-      (tstamp 1ee9595e-a10c-4fc7-a50d-595930d1a5a5)
+      (tstamp c581e774-ad08-4d8f-bafa-6d38781a82b7)
     )
     (fp_text value "LOGO" (at 0.75 0) (layer "F.SilkS") hide
       (effects (font (size 1.524 1.524) (thickness 0.3)))
-      (tstamp d953c0a2-d917-44b2-8348-e65d62f105a6)
+      (tstamp 3f2a28b5-c08e-4a30-95cd-05382fef707c)
     )
+    (fp_poly (pts
+        (xy 1.616751 2.169849)
+        (xy -1.40402 2.169849)
+        (xy -1.40402 1.872027)
+        (xy 1.616751 1.872027)
+      ) (layer "F.SilkS") (width 0) (fill solid) (tstamp 36dde111-aca2-4ea5-b975-f966e34bef2a))
     (fp_poly (pts
         (xy 4.998981 -0.000091)
         (xy 2.510263 2.488899)
@@ -979,13 +995,7 @@
         (xy -4.998981 -0.000091)
         (xy -2.49949 -2.499581)
         (xy 0 -4.999072)
-      ) (layer "F.SilkS") (width 0) (fill solid) (tstamp 479d8175-ab9f-4c0b-867c-1178f8baeca6))
-    (fp_poly (pts
-        (xy 1.616751 2.169849)
-        (xy -1.40402 2.169849)
-        (xy -1.40402 1.872027)
-        (xy 1.616751 1.872027)
-      ) (layer "F.SilkS") (width 0) (fill solid) (tstamp 727aa04d-5083-4617-b0f7-3ec2426880ee))
+      ) (layer "F.SilkS") (width 0) (fill solid) (tstamp 45c88664-503d-453d-891f-675a9a3b2e00))
     (fp_poly (pts
         (xy 0.031947 -2.851519)
         (xy 0.058871 -2.758327)
@@ -1193,7 +1203,7 @@
         (xy -0.072732 -2.767789)
         (xy -0.039047 -2.857753)
         (xy -0.003084 -2.888666)
-      ) (layer "F.SilkS") (width 0) (fill solid) (tstamp 86062f5e-5a2e-4c13-9dd0-1ce53159e5f2))
+      ) (layer "F.SilkS") (width 0) (fill solid) (tstamp 8b90823b-d9ee-40ff-ab94-ee7e51346f90))
   )
 
   (footprint "teensy:Teensy30_31_32_LC" (layer "F.Cu")
