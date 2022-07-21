@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <Servo.h>
+// #include <PWMServo.h>
 
 #define DEBUG
 
@@ -10,8 +11,10 @@
 #define O_SRV (9)   // commande servomoteur
 
 enum {E_VEILLE, E_ARME, E_VOL, E_EJECTION};  // etats du sequenceur
-uint16_t const c_ouvert(1916);         // step ouverture systeme separation (us)
-uint16_t const c_ferme(2200);          // step fermeture systeme separation (us)
+uint16_t const c_ouvert(1500);         // step ouverture systeme separation (us)
+uint16_t const c_ferme(1750);          // step fermeture systeme separation (us)
+uint16_t const c_minTravel(800);
+uint16_t const c_maxTravel(2200);
 uint16_t const c_delaiAntiRebond(100);  // delai anti-rebond prise jack (ms)
 uint16_t const c_delaiClignotant(1000); // led clignotante au depart
 
@@ -26,7 +29,9 @@ bool jack_precedent(HIGH), jack_courant(HIGH), jack(false);
 bool clignotant(LOW);
 uint8_t etat_precedent(E_VEILLE), etat(E_VEILLE);
 elapsedMillis tpsArm, tpsJck, tpsVol;
+
 Servo grosServo;
+// PWMServo grosServo;
 
 void setup() {
   pinMode(I_JCK, INPUT_PULLUP);
@@ -37,28 +42,49 @@ void setup() {
 
   #ifdef DEBUG
     Serial.begin(9600);
-    delay(5000);
+    delay(2000);
     Serial.println("LISTE DES ETATS :\n0\tetat initial\n1\tetat arme\n2\tetat vol\n3\tetat ejecte");
     Serial.println("\netat\tservo\tjack\tduree vol");
 
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);
-    digitalWrite(O_ARM, HIGH); delay(500);
-    digitalWrite(O_VOL, HIGH); delay(500);
-    digitalWrite(O_EJC, HIGH); delay(1000);
-    
-    digitalWrite(O_ARM, LOW);
-    digitalWrite(O_VOL, LOW);
-    digitalWrite(O_EJC, LOW);
   #else
     delay(5000);
   #endif
 
-  grosServo.write(c_ferme);
-  grosServo.attach(O_SRV);
+  digitalWrite(O_ARM, HIGH); delay(1000);
+  digitalWrite(O_VOL, HIGH); delay(1000);
+  digitalWrite(O_EJC, HIGH); delay(1500);
+  digitalWrite(O_ARM, LOW);
+  digitalWrite(O_VOL, LOW);
+  digitalWrite(O_EJC, LOW);
+
+  grosServo.attach(O_SRV, c_minTravel, c_maxTravel);
+  delay(200);
+  // grosServo.writeMicroseconds(c_ouvert);
+  // delay(2000);
+  grosServo.writeMicroseconds(c_ouvert);
 }
 
 void loop() {
+  // for (int i(1500); i <= 1750; i += 50){
+  //   delay(1000);
+  //   grosServo.writeMicroseconds(i);  
+  // }
+
+  // for (int i(1750); i >= 1500; i -= 50){
+  //   delay(1000);
+  //   grosServo.writeMicroseconds(i);  
+  // }
+  // return;
+
+
+  // delay(2000);
+  // grosServo.writeMicroseconds(1400);
+  // delay(2000);
+  // grosServo.writeMicroseconds(2000);
+  // return;
+
   #ifdef DEBUG
     Serial.print(etat); Serial.print('\t');
     Serial.print(etat_servo); Serial.print('\t');
