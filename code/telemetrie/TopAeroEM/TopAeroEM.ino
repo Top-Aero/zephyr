@@ -33,7 +33,7 @@ float tension1, P1, tension2, P2, tension3, P3, tension4, P4, tension5, P5, tens
 
 bool first=true;      /* Altitude */
 float altm0=0.0;
-#define ALTMODE; //comment out for barometer mode; default is altitude mode 
+#define ALTMODE //comment out for barometer mode; default is altitude mode 
 const int SENSORADDRESS = 0x60; // address specific to the MPL3115A1, value found in datasheet 
 float altsmooth = 0; //for exponential smoothing          
 byte IICdata[5] = {0,0,0,0,0}; //buffer for sensor data 
@@ -60,7 +60,9 @@ int i=0; //Compteur du nombre de mesures
 float tab_acl[3] = {0, 0, 0};
 
 void setup() {
-  Wire.begin(); //join i2c bus       
+  Wire.begin(); //join i2c bus 
+  Wire.setSDA(8); // Activation du mode alternatif du pin
+  Wire.setSCL(7); // Activation du mode alternatif du pin     
   Serial.begin(115200);//ouverture port série 1 USB
   pinMode(13,OUTPUT); //LED
   Serial2.begin(115200);//ouverture port série 2 pour radio
@@ -229,7 +231,7 @@ void loop() {
                                                       /* GPS */
   firstGPS=true;
   while (ss.available() > 0){
-  char c = GPS.read();
+  GPS.read();
   char* frame = GPS.lastNMEA();
   GPS.parse(frame);
     if(firstGPS){
