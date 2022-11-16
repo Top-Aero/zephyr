@@ -8,7 +8,7 @@
 
 Le vent d'Ouest, fils d'Astreos et d'Éos, attise le feu de notre inspiration : Zéphyr. Projet phare de l'association [Top Aéro](https://www.top-aero.com/), il s'agit d'une fusée expérimentale transsonique dont la coiffe est équipée de capteurs de pression, afin d'observer l'écoulement de l'air qui l'entoure, puis d'en comparer les résultats à une simulation numérique faite préalablement.
 
-Le dépôt Git contient les conceptions des PCB du système électronique et les codes des microcontrôleurs contenus dans la case éléctronique de la fusée. Ils sont respectivement contenus dans `case_elec` et `code`.
+Le dépôt Git contient les conceptions des PCB du système électronique et les codes des microcontrôleurs contenus dans la case électronique de la fusée. Ils sont respectivement contenus dans `case_elec` et `code`.
 
 ### Structure du dossier `case_elec`
 
@@ -68,9 +68,9 @@ Le dossier ressources se structure ainsi :
 - lib_fp : *library footprints*, contient les empreintes des composants utilisés, c'est-à-dire leur contour et les trous à placer sur la carte électronique ;
 - lib_sch : *library schematics*, contient les symboles électriques utilisés dans les schémas électriques ;
 - liensUtiles.txt : contient des liens vers des bibliothèques d'empreintes, de symboles électriques et de modèles 3D.
-- tmp_ressources : un dossier un peu fouilli qu'il faudrait prendre le temps de réhabiliter.
+- tmp_ressources : un dossier un peu fouillis qu'il faudrait prendre le temps de réhabiliter.
 
-Le fichier liensUtiles.txt porte mal son nom, car les sites vers lesquels il renvoit se sont avéré moins utiles qu'espérés : des composants complexes comme les capteurs Adafruit n'y sont pas documentés. Il a fallu, et il a mieux valu concevoir par nous même les empreintes, même approxiamtivement. Par ailleurs, Adafruit met à disposition des modèles 3D de leurs composants sur [cette page GitHub](https://github.com/adafruit/Adafruit_CAD_Parts). Toutes les entreprises n'en font pas autant.
+Le fichier liensUtiles.txt porte mal son nom, car les sites vers lesquels il renvoie se sont avéré moins utiles qu'espérés : des composants complexes comme les capteurs Adafruit n'y sont pas documentés. Il a fallu, et il a mieux valu concevoir par nous même les empreintes, même approximativement. Par ailleurs, Adafruit met à disposition des modèles 3D de leurs composants sur [cette page GitHub](https://github.com/adafruit/Adafruit_CAD_Parts). Toutes les entreprises n'en font pas autant.
 
 ### Structure du dossier `code`
 
@@ -87,7 +87,7 @@ code
 
 Les dossiers seq, TopAEroEM (EM pour émission) et TopAéroRV (RV pour récéption...) dans telemetrie contiennent des fichiers ino. C'est le format de fichier que reconnaît l'éditeur Arduino que l'on utilisait pour programmer les microcontrôleurs de la case électronique. Pour plusieurs raisons, il faut lui préférer à l'avenir son alternative PlatfomIO soit en tant qu'extension, soit en standalone à intégrer au workflow de votre IDE de choix. Pour les experts, un makefile Arduino peut suffire.
 
-Plusieurs dossiers TopAeroEM se côtoient. Une convention de nommage récurrente est de suffixer à une autre version d'un même dossier le mois puis le jour où cette version a vu le jour, en quatre chiffres. Ainsi, le dossier TopAeroEM0720 est une version de TopAeroEM créée un 20 juillet. Des exceptions subsistent (TopAeroEM_test_pitot), mais tant qu'elles ne sont pas nombreuses (plus que 2), elles restent gérables. Ces deux pratiqent sont tout de même à éviter, car elles ne tirent pas profit de la technologie de versionnage de Git. Il faut préférer mettre à jour le code existant, ou encore ajouter une nouvelle branche au projet, ou dans le pire des cas, se passer complètement du workflow Git si le contraire amenait à désorganiser la structure du projet.
+Plusieurs dossiers TopAeroEM se côtoient. Une convention de nommage récurrente est de suffixer à une autre version d'un même dossier le mois puis le jour où cette version a vu le jour, en quatre chiffres. Ainsi, le dossier TopAeroEM0720 est une version de TopAeroEM créée un 20 juillet. Des exceptions subsistent (TopAeroEM_test_pitot), mais tant qu'elles ne sont pas nombreuses (plus que 2), elles restent gérables. Ces deux pratiques sont tout de même à éviter, car elles ne tirent pas profit de la technologie de versionnage de Git. Il faut préférer mettre à jour le code existant, ou encore ajouter une nouvelle branche au projet, ou dans le pire des cas, se passer complètement du workflow Git si le contraire amenait à désorganiser la structure du projet.
 
 Le dossier station-sol contient plusieurs scripts qui n'ont pas pu être déployés. Le seul script utilisable en l'état est simpleUSBlogger.py qui se charge d'écrire dans un fichier les données réceptionnées.
 
